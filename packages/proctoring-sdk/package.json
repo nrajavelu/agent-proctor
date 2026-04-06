@@ -1,0 +1,37 @@
+{
+  "name": "@agentic-proctor/sdk",
+  "version": "2.0.0",
+  "description": "Universal SDK for embedding AI proctoring widget in any application",
+  "main": "dist/proctor-sdk.js",
+  "module": "dist/proctor-sdk.esm.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && tsc --emitDeclarationOnly",
+    "build:umd": "vite build --config vite.umd.config.js",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "proctoring",
+    "sdk",
+    "iframe",
+    "embed",
+    "ai-monitoring",
+    "universal-integration"
+  ],
+  "author": "Agentic AI Proctoring Platform",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0",
+    "vite-plugin-dts": "^3.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/agent-proctor.git"
+  }
+}

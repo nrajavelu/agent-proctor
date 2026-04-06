@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Proctoring SDK Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .demo-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+        }
+        .button {
+            background: #3182ce;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .button:hover {
+            background: #2c5aa0;
+        }
+        .button:disabled {
+            background: #a0a0a0;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status.success { background: #c6f6d5; color: #22543d; }
+        .status.error { background: #fed7d7; color: #9b2c2c; }
+        .status.info { background: #bee3f8; color: #2a4365; }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .feature-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .feature-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        .feature-desc {
+            color: #718096;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Universal AI Proctoring SDK</h1>
+            <p>Standalone iframe-based proctoring for ANY web application</p>
+        </div>
+
+        <div class="demo-section">
+            <h2>✨ Key Features</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-title">🔌 Zero Integration</div>
+                    <div class="feature-desc">Just 2 lines of JavaScript. Works with React, Vue, vanilla JS, or any framework.</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-title">🎪 Self-Contained</div>
+                    <div class="feature-desc">Independent iframe with own WebSocket connection, session management, and UI.</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-title">💾 Persistent Sessions</div>
+                    <div class="feature-desc">Survives page reloads, navigation changes, and host app crashes.</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-title">🚨 Real-time Alerts</div>
+                    <div class="feature-desc">Instant violation notifications with severity-based styling.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>🚀 Quick Integration</h2>
+            <p>Add AI proctoring to any application in under 30 seconds:</p>
+            
+            <div class="code-block">
+<!-- Load the SDK -->
+&lt;script src="https://proctor.yourdomain.com/sdk.js">&lt;/script>
+
+&lt;script>
+  // Initialize proctoring
+  ProctorSDK.init({
+    candidateId: 'student001@cs.university.edu',
+    examId: 'financial-literacy-demo',
+    organizationId: 'cs-dept-uuid',
+    sessionManager: 'ws://localhost:8080',
+    enableSimulation: true  // For testing
+  });
+&lt;/script>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>🎮 Live Demo</h2>
+            <p>Test the standalone proctoring widget:</p>
+            
+            <div class="status" id="status">
+                Ready to initialize proctoring widget...
+            </div>
+
+            <div>
+                <label>
+                    <input type="checkbox" id="simulationMode"> Enable Simulation Mode (auto-violations)
+                </label>
+            </div>
+            <br>
+
+            <button class="button" onclick="initializeProctoring()">Initialize Proctoring</button>
+            <button class="button" onclick="startSession()" id="startBtn" disabled>Start Session</button>
+            <button class="button" onclick="stopSession()" id="stopBtn" disabled>Stop Session</button>
+            <button class="button" onclick="minimizeWidget()" id="minimizeBtn" disabled>Minimize</button>
+            <button class="button" onclick="expandWidget()" id="expandBtn" disabled>Expand</button>
+            <button class="button" onclick="destroyProctoring()" id="destroyBtn" disabled>Destroy</button>
+
+            <div class="code-block">
+// Event listeners example
+proctor.on('violation', (violation) => {
+    console.log('Violation:', violation.description);
+});
+
+proctor.on('credibility:updated', (score) => {
+    console.log('Credibility:', score + '%');
+});
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>🏗️ Architecture Benefits</h2>
+            <ul>
+                <li><strong>Framework Agnostic:</strong> Works with React, Vue, Angular, vanilla JS, etc.</li>
+                <li><strong>Zero Host Dependencies:</strong> No changes needed to your application code</li>
+                <li><strong>Independent Updates:</strong> Proctoring features evolve separately</li>
+                <li><strong>Resilient Design:</strong> Survives host app errors and state changes</li>
+                <li><strong>Universal Compatibility:</strong> Integrates with legacy and modern apps</li>
+                <li><strong>Plug-and-Play:</strong> Add proctoring to existing exams instantly</li>
+            </ul>
+        </div>
+
+        <div class="demo-section">
+            <h2>📊 vs. Previous Approach</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr style="background: #f7fafc;">
+                    <th style="padding: 10px; border: 1px solid #e2e8f0;">Aspect</th>
+                    <th style="padding: 10px; border: 1px solid #e2e8f0;">Old: Integrated</th>
+                    <th style="padding: 10px; border: 1px solid #e2e8f0;">New: Standalone</th>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Integration</td>
+                    <td style="padding: 10px; border: 1px solid #e2e8f0;">❌ Requires code changes</td>
+                    <td style="padding: 10px; border: 1px solid #e2e8f0;">✅ 2 lines of JavaScript</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Portability</td>
+                    <td style="padding: 10px; border: 1px solid #e2e8f0;">❌ React-specific</td>
+                    <td style="padding: 10px; border: 1px solid #e2e8f0;">✅ Universal compatibility</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Maintenance</td>
+                    <td style="padding: 10px; border: 1px solid #e2e8f0;">❌ Host app updates needed</td>
+                    <td style="padding: 10px; border: 1px solid #e2e8f0;">✅ Zero maintenance</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e2e8f0;">Resilience</td>
+                    <td style="padding: 10px; border: 1px solid #e2e8f0;">❌ Depends on host app state</td>
+                    <td style="padding: 10px; border: 1px solid #e2e8f0;">✅ Independent operation</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Load the SDK (in real deployment, this would be from CDN) -->
+    <script src="/packages/proctoring-sdk/dist/proctor-sdk.umd.js"></script>
+    
+    <script>
+        let proctor = null;
+        let isInitialized = false;
+
+        function updateStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.className = 'status ' + type;
+            status.textContent = message;
+        }
+
+        function updateButtons() {
+            const buttons = {
+                start: document.getElementById('startBtn'),
+                stop: document.getElementById('stopBtn'),
+                minimize: document.getElementById('minimizeBtn'),
+                expand: document.getElementById('expandBtn'),
+                destroy: document.getElementById('destroyBtn')
+            };
+
+            if (isInitialized) {
+                buttons.start.disabled = false;
+                buttons.stop.disabled = false;
+                buttons.minimize.disabled = false;
+                buttons.expand.disabled = false;
+                buttons.destroy.disabled = false;
+            } else {
+                buttons.start.disabled = true;
+                buttons.stop.disabled = true;
+                buttons.minimize.disabled = true;
+                buttons.expand.disabled = true;
+                buttons.destroy.disabled = true;
+            }
+        }
+
+        function initializeProctoring() {
+            try {
+                if (!window.ProctorSDK) {
+                    updateStatus('ProctorSDK not loaded. Please refresh the page.', 'error');
+                    return;
+                }
+
+                const simulationEnabled = document.getElementById('simulationMode').checked;
+
+                proctor = window.ProctorSDK.init({
+                    candidateId: 'demo@universal-integration.test',
+                    examId: 'universal-sdk-demo',
+                    organizationId: 'demo-org-123',
+                    sessionManager: 'ws://localhost:8080',
+                    enableSimulation: simulationEnabled,
+                    widgetUrl: '/packages/proctoring-widget/dist/widget.html',
+                    position: 'top-right',
+                    autoStart: false
+                });
+
+                // Set up event listeners
+                proctor.on('violation', (violation) => {
+                    console.log('🚨 Violation detected:', violation);
+                    updateStatus(`Violation: ${violation.description}`, 'error');
+                });
+
+                proctor.on('credibility:updated', (score) => {
+                    console.log('📊 Credibility updated:', score);
+                });
+
+                proctor.on('session:started', () => {
+                    updateStatus('Proctoring session started successfully', 'success');
+                });
+
+                proctor.on('session:ended', () => {
+                    updateStatus('Proctoring session ended', 'info');
+                });
+
+                proctor.on('minimized', () => {
+                    updateStatus('Widget minimized', 'info');
+                });
+
+                proctor.on('expanded', () => {
+                    updateStatus('Widget expanded', 'info');
+                });
+
+                isInitialized = true;
+                updateButtons();
+                updateStatus('Proctoring SDK initialized successfully! Widget should appear on the right.', 'success');
+
+            } catch (error) {
+                console.error('Failed to initialize proctoring:', error);
+                updateStatus(`Failed to initialize: ${error.message}`, 'error');
+            }
+        }
+
+        function startSession() {
+            if (proctor) {
+                proctor.start();
+                updateStatus('Starting proctoring session...', 'info');
+            }
+        }
+
+        function stopSession() {
+            if (proctor) {
+                proctor.stop();
+                updateStatus('Stopping proctoring session...', 'info');
+            }
+        }
+
+        function minimizeWidget() {
+            if (proctor) {
+                proctor.minimize();
+            }
+        }
+
+        function expandWidget() {
+            if (proctor) {
+                proctor.expand();
+            }
+        }
+
+        function destroyProctoring() {
+            if (proctor) {
+                proctor.destroy();
+                proctor = null;
+                isInitialized = false;
+                updateButtons();
+                updateStatus('Proctoring SDK destroyed', 'info');
+            }
+        }
+
+        // Initialize buttons state
+        updateButtons();
+    </script>
+</body>
+</html>

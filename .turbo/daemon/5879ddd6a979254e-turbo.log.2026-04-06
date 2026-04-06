@@ -1809,3 +1809,59 @@
 2026-04-06T16:35:52.178933Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/demo-quiz/src/components/QuizInterface.tsx")}
 2026-04-06T16:35:52.178953Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@ayan/demo-quiz"), path: AnchoredSystemPathBuf("apps/demo-quiz") }}))
 2026-04-06T16:35:52.355038Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2026-04-06T16:50:11.572890Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/proctoring-widget"), AnchoredSystemPathBuf("packages/proctoring-widget/src")}
+2026-04-06T16:50:11.572907Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:50:20.472965Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/proctoring-widget/package.json")}
+2026-04-06T16:50:20.472980Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:50:24.572328Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/proctoring-widget/package.json")}
+2026-04-06T16:50:24.572352Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:50:58.772707Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/proctoring-widget/src/widget.html")}
+2026-04-06T16:50:58.772727Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:51:01.272854Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/proctoring-widget/src/widget.html")}
+2026-04-06T16:51:01.272961Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:52:05.972766Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/proctoring-widget/src/widget.js")}
+2026-04-06T16:52:05.972785Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:52:09.373709Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/proctoring-widget/src/widget.js")}
+2026-04-06T16:52:09.373723Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:52:13.273814Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/proctoring-sdk/src"), AnchoredSystemPathBuf("packages/proctoring-sdk")}
+2026-04-06T16:52:13.273834Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:52:23.072890Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/proctoring-sdk/package.json")}
+2026-04-06T16:52:23.072911Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:52:23.872928Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/proctoring-sdk/package.json")}
+2026-04-06T16:52:23.872952Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:53:05.323241Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/proctoring-sdk/src/index.ts")}
+2026-04-06T16:53:05.323681Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:53:08.072863Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/proctoring-sdk/src/index.ts")}
+2026-04-06T16:53:08.072891Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:53:11.881615Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/proctoring-widget/tsconfig.json")}
+2026-04-06T16:53:11.881634Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:53:12.472427Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/proctoring-widget/tsconfig.json")}
+2026-04-06T16:53:12.472483Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:53:20.172304Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/proctoring-sdk/tsconfig.json")}
+2026-04-06T16:53:20.172324Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:53:20.773406Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/proctoring-sdk/tsconfig.json")}
+2026-04-06T16:53:20.773423Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:53:27.473822Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/proctoring-widget/vite.config.ts")}
+2026-04-06T16:53:27.473838Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:53:29.573749Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/proctoring-widget/vite.config.ts")}
+2026-04-06T16:53:29.573782Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:53:32.973238Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/proctoring-sdk/vite.config.ts")}
+2026-04-06T16:53:32.973271Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:53:33.874447Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/proctoring-sdk/vite.config.ts")}
+2026-04-06T16:53:33.874507Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:54:35.680253Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/demo-quiz-v2/src/components/QuizInterface.tsx"), AnchoredSystemPathBuf("apps/demo-quiz-v2"), AnchoredSystemPathBuf("apps/demo-quiz-v2/src/components"), AnchoredSystemPathBuf("apps/demo-quiz-v2/src")}
+2026-04-06T16:54:35.680273Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:54:38.372919Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/demo-quiz-v2/src/components/QuizInterface.tsx")}
+2026-04-06T16:54:38.372932Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:55:28.673197Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("demo/universal-sdk-demo.html")}
+2026-04-06T16:55:28.673215Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:55:32.473139Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("demo/universal-sdk-demo.html")}
+2026-04-06T16:55:32.473155Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:55:46.588062Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/demo-quiz-v2/src/components/QuizInterface.tsx"), AnchoredSystemPathBuf("packages/proctoring-widget/tsconfig.json"), AnchoredSystemPathBuf("packages/proctoring-sdk/src/index.ts"), AnchoredSystemPathBuf("packages/proctoring-widget/vite.config.ts"), AnchoredSystemPathBuf("packages/proctoring-sdk/vite.config.ts"), AnchoredSystemPathBuf("demo/universal-sdk-demo.html"), AnchoredSystemPathBuf("packages/proctoring-widget/package.json"), AnchoredSystemPathBuf("packages/proctoring-sdk/package.json"), AnchoredSystemPathBuf("packages/proctoring-widget/src/widget.html"), AnchoredSystemPathBuf("packages/proctoring-widget/src/widget.js"), AnchoredSystemPathBuf("packages/proctoring-sdk/tsconfig.json")}
+2026-04-06T16:55:46.588088Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:55:46.674885Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/proctoring-sdk/src/index.ts"), AnchoredSystemPathBuf("demo/universal-sdk-demo.html"), AnchoredSystemPathBuf("packages/proctoring-sdk/vite.config.ts"), AnchoredSystemPathBuf("packages/proctoring-sdk/package.json"), AnchoredSystemPathBuf("packages/proctoring-widget/vite.config.ts"), AnchoredSystemPathBuf("packages/proctoring-sdk/tsconfig.json"), AnchoredSystemPathBuf("packages/proctoring-widget/src/widget.js"), AnchoredSystemPathBuf("packages/proctoring-widget/package.json"), AnchoredSystemPathBuf("apps/demo-quiz-v2/src/components/QuizInterface.tsx"), AnchoredSystemPathBuf("packages/proctoring-widget/tsconfig.json"), AnchoredSystemPathBuf("packages/proctoring-widget/src/widget.html")}
+2026-04-06T16:55:46.674925Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:56:10.373479Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("STANDALONE-ARCHITECTURE.md")}
+2026-04-06T16:56:10.373613Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-06T16:56:12.573987Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("STANDALONE-ARCHITECTURE.md")}
+2026-04-06T16:56:12.574004Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
