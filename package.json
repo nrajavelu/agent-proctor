@@ -1,0 +1,83 @@
+{
+  "name": "agentic-ai-proctor",
+  "version": "0.1.0",
+  "description": "Revolutionary AI-powered proctoring platform with deployable agents",
+  "private": true,
+  "packageManager": "pnpm@8.15.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "workspaces": [
+    "services/*",
+    "packages/*",
+    "tools/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "clean": "turbo run clean",
+    "ai:start": "docker-compose -f infrastructure/docker/ai-services.yml up -d",
+    "ai:stop": "docker-compose -f infrastructure/docker/ai-services.yml down",
+    "infra:start": "docker-compose -f infrastructure/docker/infrastructure.yml up -d",
+    "infra:stop": "docker-compose -f infrastructure/docker/infrastructure.yml down",
+    "setup": "pnpm install && pnpm build",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "typecheck": "turbo run typecheck"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.5",
+    "@types/compression": "^1.8.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^1.4.11",
+    "@types/node": "^20.19.39",
+    "@types/pg": "^8.20.0",
+    "@types/uuid": "^11.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.0",
+    "turbo": "^1.12.0",
+    "typescript": "^5.3.0"
+  },
+  "keywords": [
+    "proctoring",
+    "ai",
+    "computer-vision",
+    "microservices",
+    "agentic-ai",
+    "examination",
+    "monitoring",
+    "open-source"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/agentic-ai-proctor.git"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.450.0",
+    "@types/ws": "^8.5.10",
+    "axios": "^1.6.0",
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "helmet": "^7.1.0",
+    "ioredis": "^5.10.1",
+    "jsonwebtoken": "^9.0.2",
+    "minio": "^7.1.3",
+    "multer": "^1.4.5-lts.1",
+    "pg": "^8.11.3",
+    "sharp": "^0.34.5",
+    "uuid": "^9.0.1",
+    "winston": "^3.11.0",
+    "ws": "^8.14.2",
+    "zod": "^3.22.4"
+  }
+}

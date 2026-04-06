@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Test Page</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .log { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .test { padding: 10px; margin: 10px; background: #e3f2fd; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Browser Event Test Page</h1>
+    <p>This page tests if basic browser events are working (similar to what the proctoring system uses).</p>
+    
+    <div class="test">
+        <h3>🧪 Tests to Perform:</h3>
+        <ul>
+            <li><strong>Tab Switch:</strong> Click away from this tab, then come back</li>
+            <li><strong>Window Focus:</strong> Click on another application, then back here</li>
+            <li><strong>Right Click:</strong> Right-click anywhere on this page</li>
+            <li><strong>Key Press:</strong> Try Ctrl+T, F12, or other keys</li>
+        </ul>
+    </div>
+
+    <div id="logs"></div>
+
+    <script>
+        const logsDiv = document.getElementById('logs');
+        let logCount = 0;
+
+        function addLog(message, color = '#333') {
+            logCount++;
+            const logElement = document.createElement('div');
+            logElement.className = 'log';
+            logElement.style.borderLeft = `5px solid ${color}`;
+            logElement.innerHTML = `<strong>#${logCount}</strong> ${new Date().toLocaleTimeString()} - ${message}`;
+            logsDiv.insertBefore(logElement, logsDiv.firstChild);
+            
+            // Keep only last 20 logs
+            if (logsDiv.children.length > 20) {
+                logsDiv.removeChild(logsDiv.lastChild);
+            }
+        }
+
+        // Visibility change (tab switch)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                addLog('🚨 TAB SWITCHED AWAY (visibility hidden)', '#ff9800');
+            } else {
+                addLog('✅ TAB FOCUSED BACK (visibility visible)', '#4caf50');
+            }
+        });
+
+        // Window blur/focus
+        window.addEventListener('blur', () => {
+            addLog('🚨 WINDOW LOST FOCUS (blur)', '#ff5722');
+        });
+
+        window.addEventListener('focus', () => {
+            addLog('✅ WINDOW GAINED FOCUS (focus)', '#4caf50');
+        });
+
+        // Right click
+        document.addEventListener('contextmenu', (e) => {
+            addLog('🚨 RIGHT CLICK DETECTED (contextmenu)', '#9c27b0');
+            // Don't prevent default here so we can still access dev tools
+        });
+
+        // Key presses
+        document.addEventListener('keydown', (e) => {
+            let keyDescription = e.key;
+            if (e.ctrlKey) keyDescription = `Ctrl+${e.key}`;
+            if (e.shiftKey) keyDescription = `Shift+${keyDescription}`;
+            if (e.altKey) keyDescription = `Alt+${keyDescription}`;
+            
+            addLog(`⌨️ KEY PRESSED: ${keyDescription}`, '#2196f3');
+        });
+
+        // Initial log
+        addLog('🎯 Event listeners initialized successfully!', '#4caf50');
+    </script>
+</body>
+</html>

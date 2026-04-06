@@ -1,0 +1,29 @@
+{
+  "name": "@agentic-proctor/sdk",
+  "version": "0.1.0", 
+  "description": "JavaScript SDK for integrating agentic AI proctoring into any web application",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  },
+  "files": [
+    "dist/",
+    "src/"
+  ],
+  "keywords": [
+    "proctoring",
+    "ai",
+    "sdk",
+    "agent",
+    "monitoring"
+  ]
+}

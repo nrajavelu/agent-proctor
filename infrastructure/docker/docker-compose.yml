@@ -1,0 +1,260 @@
+version: '3.8'
+
+services:
+  # Core Database
+  ayan-postgres:
+    image: postgres:16-alpine
+    container_name: ayan-postgres
+    environment:
+      POSTGRES_DB: ayan_db
+      POSTGRES_USER: ayan_user
+      POSTGRES_PASSWORD: ayan_pass_dev
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ayan_user -d ayan_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - ayan-network
+
+  # TimescaleDB for metrics and events
+  ayan-timescale:
+    image: timescale/timescaledb-ha:pg16-latest
+    container_name: ayan-timescale
+    environment:
+      POSTGRES_DB: ayan_events
+      POSTGRES_USER: timescale_user
+      POSTGRES_PASSWORD: timescale_pass_dev
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U timescale_user -d ayan_events"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    profiles:
+      - events
+    networks:
+      - ayan-network
+
+  # Redis for caching and sessions
+  ayan-redis:
+    image: redis:7-alpine
+    container_name: ayan-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - ayan-network
+
+  # Keycloak for super admin authentication
+  ayan-keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: ayan-keycloak
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://ayan-postgres:5432/ayan_db
+      KC_DB_USERNAME: ayan_user
+      KC_DB_PASSWORD: ayan_pass_dev
+      KC_DB_SCHEMA: keycloak
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin_dev_pass
+      KC_HTTP_PORT: 8080
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      JAVA_OPTS: "-Xms128m -Xmx256m"
+    ports:
+      - "8080:8080"
+    command:
+      - start-dev
+      - --import-realm
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import:ro
+    depends_on:
+      ayan-postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    restart: unless-stopped
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+        reservations:
+          memory: 128m
+    networks:
+      - ayan-network
+
+  # LiveKit media server
+  ayan-livekit:
+    image: livekit/livekit-server:v1.5.2
+    container_name: ayan-livekit
+    environment:
+      LIVEKIT_KEY: devkey
+      LIVEKIT_SECRET: devsecret
+      REDIS_URL: redis://ayan-redis:6379
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "50000-50100:50000-50100/udp"
+    depends_on:
+      - ayan-redis
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:7880 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - ayan-network
+
+  # MinIO for file storage (recordings, uploads)
+  ayan-storage:
+    image: minio/minio:latest
+    container_name: ayan-storage
+    environment:
+      MINIO_ROOT_USER: ayan_admin_user
+      MINIO_ROOT_PASSWORD: ayan_admin_pass_dev
+    ports:
+      - "9000:9000"
+      - "9090:9090"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9090"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - ayan-network
+
+  # MinIO bucket initialization
+  minio-init:
+    image: minio/mc:latest
+    container_name: ayan-minio-init
+    volumes:
+      - ./scripts/minio-init.sh:/init.sh:ro
+    entrypoint: ["sh", "/init.sh"]
+    depends_on:
+      - ayan-storage
+    networks:
+      - ayan-network
+
+  # Apache Kafka for event streaming (Phase 2+)
+  ayan-kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: ayan-kafka
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: ayan-zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports:
+      - "9092:9092"
+    depends_on:
+      - ayan-zookeeper
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    restart: unless-stopped
+    profiles:
+      - events
+    networks:
+      - ayan-network
+
+  ayan-zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: ayan-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+    restart: unless-stopped
+    profiles:
+      - events
+    networks:
+      - ayan-network
+
+  # Prometheus for monitoring (Phase 5)
+  ayan-prometheus:
+    image: prom/prometheus:latest
+    container_name: ayan-prometheus
+    ports:
+      - "9091:9090"
+    volumes:
+      - prometheus_data:/prometheus
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    restart: unless-stopped
+    profiles:
+      - monitoring
+    networks:
+      - ayan-network
+
+  # Grafana for dashboards (Phase 5)
+  ayan-grafana:
+    image: grafana/grafana:latest
+    container_name: ayan-grafana
+    ports:
+      - "3002:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin_dev_pass
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana:/etc/grafana/provisioning:ro
+    restart: unless-stopped
+    profiles:
+      - monitoring
+    networks:
+      - ayan-network
+
+volumes:
+  postgres_data:
+  timescale_data:
+  redis_data:
+  kafka_data:
+  zookeeper_data:
+  minio_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  ayan-network:
+    driver: bridge
