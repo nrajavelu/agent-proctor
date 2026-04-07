@@ -1,6 +1,6 @@
 # 🚀 AYAN.AI — AGENTIC AI PROCTORING PLATFORM
 
-> **Last revised**: 2026-04-05 (Phase 4 Complete ✅)
+> **Last revised**: 2026-04-07 (Phase 5 Complete ✅ | Running Setup Documented)
 > **Product**: **Ayan.ai** — Agentic AI Proctoring by [Tech Machers](https://machers.tech)
 > **Auth strategy**: Self-hosted Keycloak SSO — no cloud vendor lock-in
 > **Infra strategy**: 100% self-hosted, Docker Compose → Kubernetes
@@ -1756,6 +1756,101 @@ npm run dev  # → http://localhost:3001
 | **LiveKit** | livekit/livekit-server:latest | 7880/7881 | WebRTC media |
 | **Traefik** | traefik:v3 | 80/443 | Reverse proxy |
 | **Ollama** | ollama/ollama:latest | 11434 | Local LLM (Phase 6) |
+
+---
+
+## 🏃 CURRENT RUNNING SETUP — QUICK REFERENCE (Phase 5)
+
+> **Last updated**: 2026-04-07 | **Branch**: `main` | **Tag**: `v2.0-phase5`  
+> **Release branch**: `release/v2.0-phase5-complete` (frozen baseline)  
+> **Docker compose**: `infrastructure/docker/docker-compose.yml`
+
+### 🐳 Docker Containers — Start Command
+```bash
+cd infrastructure/docker
+docker compose up -d                            # Core services (Postgres, Redis, Keycloak, LiveKit, MinIO)
+docker compose --profile monitoring up -d       # + Prometheus, Grafana
+docker compose --profile events up -d           # + Kafka, Zookeeper, TimescaleDB
+```
+
+| Container | Image | Host Port | Credentials | URL |
+|-----------|-------|-----------|-------------|-----|
+| `ayan-postgres` | `postgres:16-alpine` | **5432** | db: `ayan_db` / user: `ayan_user` / pass: `ayan_pass_dev` | `postgresql://ayan_user:ayan_pass_dev@localhost:5432/ayan_db` |
+| `ayan-redis` | `redis:7-alpine` | **6379** | (no auth) | `redis://localhost:6379` |
+| `ayan-keycloak` | `quay.io/keycloak/keycloak:24.0` | **8080** | admin: `admin` / pass: `admin_dev_pass` | http://localhost:8080 |
+| `ayan-livekit` | `livekit/livekit-server:v1.5.2` | **7880**, 7881 | key: `devkey` / secret: `devsecret` | http://localhost:7880 |
+| `ayan-storage` (MinIO) | `minio/minio:latest` | **9000** (API), **9090** (console) | user: `ayan_admin_user` / pass: `ayan_admin_pass_dev` | http://localhost:9090 |
+| `ayan-prometheus` | `prom/prometheus:latest` | **9091** | (no auth) | http://localhost:9091 |
+| `ayan-grafana` | `grafana/grafana:latest` | **3002** | admin: `admin` / pass: `admin_dev_pass` | http://localhost:3002 |
+| `ayan-timescale` | `timescale/timescaledb-ha:pg16` | **5433** | db: `ayan_events` / user: `timescale_user` / pass: `timescale_pass_dev` | (profile: events) |
+| `ayan-kafka` | `confluentinc/cp-kafka:latest` | **9092** | (no auth) | (profile: events) |
+| `ayan-zookeeper` | `confluentinc/cp-zookeeper:latest` | **2181** | (no auth) | (profile: events) |
+
+### 🖥️ Application Services — Start Command
+```bash
+# From project root: /Users/rajavelu/Documents/Macher Repo/agent-proctor
+
+# 1. Session Manager (must start first)
+node tools/session-manager-server.js &
+
+# 2. Demo Quiz App
+cd apps/demo-quiz && pnpm dev &
+
+# 3. Admin Dashboard
+cd apps/web && pnpm dev &
+
+# 4. Control Plane API
+cd services/control-plane && pnpm dev &
+```
+
+| Service | Port | URL | Purpose |
+|---------|------|-----|---------|
+| **Session Manager** (WebSocket) | **8081** | `ws://localhost:8081` | Central WS hub — sessions, violations, evidence, settings |
+| **Demo Quiz App** (Next.js) | **3001** | http://localhost:3001 | Candidate exam interface with proctoring SDK |
+| **Admin Dashboard** (Next.js) | **3003** | http://localhost:3003/admin | Super Admin / Tenant Admin dashboard |
+| **Control Plane** (Express) | **4001** | http://localhost:4001 | REST API — tenants, sessions, health |
+
+### 🔑 Admin Login Credentials
+
+| Role | URL | Email | Password | Org |
+|------|-----|-------|----------|-----|
+| **Super Admin** | http://localhost:3003/admin/login | `superadmin@ayan.ai` | `admin123` | Ayan.ai System Admin (sees all) |
+| **CS Dept Admin** | http://localhost:3003/admin/login | `admin@cs.university.edu` | `demo123` | Computer Science Department |
+| **Eng College Admin** | http://localhost:3003/admin/login | `proctor@eng.college.edu` | `demo123` | Engineering College |
+| **Business School** | http://localhost:3003/admin/login | `examiner@business.school.edu` | `demo123` | Business School Testing |
+
+### 📁 Key Configuration Files
+
+| File | Purpose |
+|------|---------|
+| `infrastructure/docker/docker-compose.yml` | Docker services (DO NOT modify for Phase 6) |
+| `infrastructure/docker/livekit-simple.yaml` | LiveKit config (key: `devkey`, secret: `devsecret`, redis: `ayan-redis:6379`) |
+| `infrastructure/docker/monitoring/prometheus.yml` | Prometheus scrape targets |
+| `apps/demo-quiz/public/proctor-sdk-standalone.js` | Proctor SDK (browser-side AI, 998 lines) |
+| `tools/session-manager-server.js` | Session manager server (566 lines) |
+| `apps/web/hooks/usePlatformStats.ts` | Real-time platform stats hook |
+| `apps/web/hooks/useSessionManager.ts` | Admin WebSocket connection hook |
+
+### 🔌 Internal Service Connections
+
+```
+Quiz App (3001) ──ws://localhost:8081──▶ Session Manager ──http://localhost:4001──▶ Control Plane
+                                              │
+Admin Dashboard (3003) ──ws://localhost:8081──┘
+                                              │
+                                    ┌─────────┴──────────┐
+                                    ▼                    ▼
+                             ayan-postgres:5432    ayan-redis:6379
+```
+
+### ⚠️ Important Notes
+- **Port 8080** is Keycloak — do not use for other services
+- **Port 8081** was changed from 8080 to avoid Keycloak conflict
+- **Port 3002** is Grafana — admin dashboard was moved to 3003
+- Docker compose `profiles` (`events`, `monitoring`) must be explicitly enabled
+- Session Manager stores sessions in-memory — restart clears all data
+- Evidence storage is inline base64 by default (configurable via GlobalSettings → Evidence & Storage)
+- All volumes are named Docker volumes — data persists across `docker compose down` / `up`
 
 ---
 
