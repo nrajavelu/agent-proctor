@@ -79,17 +79,16 @@ services:
       KC_HTTP_PORT: 8080
       KC_HOSTNAME_STRICT: "false"
       KC_HOSTNAME_STRICT_HTTPS: "false"
-      JAVA_OPTS: "-Xms128m -Xmx256m"
+      JAVA_OPTS: "-Xms64m -Xmx512m -XX:+UseContainerSupport"
     ports:
       - "8080:8080"
     command:
       - start-dev
-      - --import-realm
-    volumes:
-      - ./keycloak:/opt/keycloak/data/import:ro
     depends_on:
       ayan-postgres:
         condition: service_healthy
+    security_opt:
+      - seccomp:unconfined
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
       interval: 30s
@@ -97,17 +96,12 @@ services:
       retries: 10
       start_period: 60s
     restart: unless-stopped
-    ulimits:
-      nproc: 65535
-      nofile:
-        soft: 65535
-        hard: 65535
     deploy:
       resources:
         limits:
-          memory: 512m
+          memory: 1g
         reservations:
-          memory: 128m
+          memory: 256m
     networks:
       - ayan-network
 
@@ -115,10 +109,9 @@ services:
   ayan-livekit:
     image: livekit/livekit-server:v1.5.2
     container_name: ayan-livekit
-    environment:
-      LIVEKIT_KEY: devkey
-      LIVEKIT_SECRET: devsecret
-      REDIS_URL: redis://ayan-redis:6379
+    volumes:
+      - ./livekit-simple.yaml:/livekit.yaml:ro
+    command: ["--config", "/livekit.yaml"]
     ports:
       - "7880:7880"
       - "7881:7881"

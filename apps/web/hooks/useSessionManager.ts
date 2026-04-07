@@ -1,13 +1,15 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 
 interface Session {
   sessionId: string;
+  shortId?: string;
   candidateId: string;
   examId: string;
   organizationId: string;
-  status: 'active' | 'completed' | 'terminated';
+  status: 'active' | 'completed' | 'terminated' | 'abandoned' | 'idle-yellow' | 'idle-amber' | 'idle-red';
   startedAt: Date;
   completedAt?: Date;
+  lastActivity?: Date;
   score: number;
   credibilityScore: number;
   riskLevel: 'low' | 'medium' | 'high' | 'critical';
@@ -50,16 +52,57 @@ export function useSessionManager(options: UseSessionManagerOptions = {}): UseSe
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [ws, setWs] = useState<WebSocket | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const reconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Use ref-based handler so the websocket always calls the latest version
+  const handleMessage = useCallback((message: any) => {
+    switch (message.type) {
+      case 'sessions:list':
+        setSessions(message.data || []);
+        break;
+      
+      case 'session:new':
+        setSessions(prev => {
+          // Avoid duplicates
+          if (prev.some(s => s.sessionId === message.data.sessionId)) return prev;
+          return [message.data, ...prev];
+        });
+        break;
+      
+      case 'session:updated':
+        setSessions(prev => {
+          const idx = prev.findIndex(s => s.sessionId === message.data.sessionId);
+          if (idx === -1) return [message.data, ...prev]; // New session we haven't seen
+          const next = [...prev];
+          next[idx] = message.data; // Full replacement with server-authoritative data
+          return next;
+        });
+        break;
+      
+      case 'session:ended':
+        setSessions(prev => prev.map(session => 
+          session.sessionId === message.data.sessionId ? message.data : session
+        ));
+        break;
+      
+      case 'violation:new':
+        // Don't process — session:updated (which follows immediately) has the full state
+        break;
+      
+      default:
+        break;
+    }
+  }, []);
 
   const connect = useCallback(() => {
-    if (isConnecting || isConnected) return;
+    if (wsRef.current && (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING)) return;
     
     setIsConnecting(true);
     setError(null);
     
     try {
-      const wsUrl = new URL('ws://localhost:8080');
+      const wsUrl = new URL('ws://localhost:8081');
       wsUrl.searchParams.set('type', 'admin');
       if (organizationId) {
         wsUrl.searchParams.set('organizationId', organizationId);
@@ -72,126 +115,62 @@ export function useSessionManager(options: UseSessionManagerOptions = {}): UseSe
         setIsConnected(true);
         setIsConnecting(false);
         setError(null);
-        
-        // Request current sessions
-        websocket.send(JSON.stringify({
-          type: 'admin:request_sessions'
-        }));
+        websocket.send(JSON.stringify({ type: 'admin:request_sessions' }));
       };
       
       websocket.onmessage = (event) => {
         try {
-          const message = JSON.parse(event.data);
-          handleMessage(message);
-        } catch (error) {
-          console.error('❌ Error parsing WebSocket message:', error);
+          handleMessage(JSON.parse(event.data));
+        } catch (err) {
+          console.error('❌ Parse error:', err);
         }
       };
       
       websocket.onclose = () => {
-        console.log('❌ WebSocket connection closed');
         setIsConnected(false);
         setIsConnecting(false);
-        setWs(null);
+        wsRef.current = null;
         
-        // Auto-reconnect after 3 seconds
         if (autoConnect) {
-          setTimeout(() => {
-            if (!isConnected && !isConnecting) {
-              connect();
-            }
+          reconnectRef.current = setTimeout(() => {
+            connect();
           }, 3000);
         }
       };
       
-      websocket.onerror = (error) => {
-        console.error('❌ WebSocket error:', error);
+      websocket.onerror = () => {
         setError('Failed to connect to session manager');
         setIsConnecting(false);
       };
       
-      setWs(websocket);
+      wsRef.current = websocket;
       
-    } catch (error) {
-      console.error('❌ Error creating WebSocket:', error);
+    } catch (err) {
       setError('Failed to create WebSocket connection');
       setIsConnecting(false);
     }
-  }, [organizationId, autoConnect, isConnecting, isConnected]);
+  }, [organizationId, autoConnect, handleMessage]);
 
   const disconnect = useCallback(() => {
-    if (ws) {
-      ws.close();
-      setWs(null);
+    if (reconnectRef.current) clearTimeout(reconnectRef.current);
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
     }
     setIsConnected(false);
     setIsConnecting(false);
-  }, [ws]);
+  }, []);
 
   const refreshSessions = useCallback(() => {
-    if (ws && isConnected) {
-      ws.send(JSON.stringify({
-        type: 'admin:request_sessions'
-      }));
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: 'admin:request_sessions' }));
     }
-  }, [ws, isConnected]);
-
-  const handleMessage = (message: any) => {
-    switch (message.type) {
-      case 'sessions:list':
-        setSessions(message.data);
-        break;
-      
-      case 'session:new':
-        setSessions(prev => [message.data, ...prev]);
-        break;
-      
-      case 'session:updated':
-        setSessions(prev => prev.map(session => 
-          session.sessionId === message.data.sessionId ? message.data : session
-        ));
-        break;
-      
-      case 'session:ended':
-        setSessions(prev => prev.map(session => 
-          session.sessionId === message.data.sessionId ? message.data : session
-        ));
-        break;
-      
-      case 'violation:new':
-        setSessions(prev => prev.map(session => {
-          if (session.sessionId === message.sessionId) {
-            return {
-              ...session,
-              violations: [...session.violations, message.data]
-            };
-          }
-          return session;
-        }));
-        break;
-      
-      default:
-        console.warn('❓ Unknown message type:', message.type);
-    }
-  };
+  }, []);
 
   useEffect(() => {
-    if (autoConnect) {
-      connect();
-    }
-    
-    return () => {
-      disconnect();
-    };
+    if (autoConnect) connect();
+    return () => { disconnect(); };
   }, [autoConnect]);
 
-  return {
-    sessions,
-    isConnected,
-    isConnecting,
-    error,
-    connect,
-    disconnect,
-    refreshSessions
-  };
+  return { sessions, isConnected, isConnecting, error, connect, disconnect, refreshSessions };
 }

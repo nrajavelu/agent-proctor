@@ -6,7 +6,8 @@ import {
   Building2, Users, Settings, Globe,
   BarChart3, Database, Zap, Shield,
   Eye, Mic, Brain, Monitor, Camera,
-  Sliders, Save, RefreshCw, AlertCircle
+  Sliders, Save, RefreshCw, AlertCircle,
+  HardDrive, Image, Film, AudioLines, Clock
 } from 'lucide-react';
 
 interface GlobalSettings {
@@ -49,6 +50,14 @@ interface GlobalSettings {
       strictMode: boolean;
       allowManualOverride: boolean;
     };
+  };
+  evidence: {
+    storageMode: 'inline' | 'minio';
+    captureScreenshots: boolean;
+    captureWebcamFrames: boolean;
+    captureAudioClips: boolean;
+    retentionDays: number;
+    maxEvidenceSizeKB: number;
   };
   ai: {
     visionModel: string;
@@ -115,6 +124,14 @@ const defaultSettings: GlobalSettings = {
       allowManualOverride: true
     }
   },
+  evidence: {
+    storageMode: 'inline',
+    captureScreenshots: true,
+    captureWebcamFrames: true,
+    captureAudioClips: true,
+    retentionDays: 1,
+    maxEvidenceSizeKB: 200,
+  },
   ai: {
     visionModel: 'yolov8n',
     audioModel: 'whisper-base',
@@ -142,7 +159,7 @@ const defaultSettings: GlobalSettings = {
 export default function GlobalSettings() {
   const [settings, setSettings] = useState<GlobalSettings>(defaultSettings);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'system' | 'proctoring' | 'ai' | 'integration' | 'security'>('system');
+  const [activeTab, setActiveTab] = useState<'system' | 'proctoring' | 'evidence' | 'ai' | 'integration' | 'security'>('system');
 
   const updateSetting = (section: keyof GlobalSettings, key: string, value: any) => {
     setSettings(prev => ({
@@ -170,10 +187,28 @@ export default function GlobalSettings() {
   const saveSettings = async () => {
     setSaving(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Push evidence settings to session manager via one-shot WebSocket
+      const ws = new WebSocket('ws://localhost:8081?type=admin');
+      ws.onopen = () => {
+        ws.send(JSON.stringify({
+          type: 'admin:update_settings',
+          data: { evidence: settings.evidence }
+        }));
+        // Close after a short delay to allow processing
+        setTimeout(() => ws.close(), 1000);
+      };
+      ws.onmessage = (e) => {
+        try {
+          const msg = JSON.parse(e.data);
+          if (msg.type === 'settings:saved') {
+            console.log('✅ Settings saved to session manager:', msg.data);
+          }
+        } catch (_) {}
+      };
+      // Also save other settings to localStorage for persistence
+      localStorage.setItem('platform_settings', JSON.stringify(settings));
+      await new Promise(resolve => setTimeout(resolve, 1500));
       console.log('Settings saved:', settings);
-      // Show success message
     } catch (error) {
       console.error('Failed to save settings:', error);
     } finally {
@@ -188,6 +223,7 @@ export default function GlobalSettings() {
   const tabs = [
     { id: 'system', label: 'System', icon: Database },
     { id: 'proctoring', label: 'Proctoring', icon: Shield },
+    { id: 'evidence', label: 'Evidence & Storage', icon: HardDrive },
     { id: 'ai', label: 'AI Models', icon: Brain },
     { id: 'integration', label: 'Integration', icon: Globe },
     { id: 'security', label: 'Security', icon: AlertCircle }
@@ -529,6 +565,163 @@ export default function GlobalSettings() {
       <div className="bg-navy-800/50 border border-white/10 rounded-xl p-6">
         {activeTab === 'system' && renderSystemSettings()}
         {activeTab === 'proctoring' && renderProctoringSettings()}
+        {activeTab === 'evidence' && (
+          <div className="space-y-8">
+            {/* Storage Mode */}
+            <div className="bg-navy-800/30 p-6 rounded-lg">
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <HardDrive className="w-5 h-5" />
+                Storage & Delivery
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Storage Mode</label>
+                    <select
+                      value={settings.evidence.storageMode}
+                      onChange={(e) => updateSetting('evidence', 'storageMode', e.target.value)}
+                      className="w-full px-3 py-2 bg-navy-800 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                    >
+                      <option value="inline">Inline (Base64 in Memory) — Default</option>
+                      <option value="minio">MinIO / S3 Object Storage</option>
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {settings.evidence.storageMode === 'inline'
+                        ? 'Evidence stored as base64 in session data (fast, no external deps, limited by RAM)'
+                        : 'Evidence uploaded to MinIO/S3 bucket (scalable, persistent, requires MinIO running)'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Max Evidence Size: {settings.evidence.maxEvidenceSizeKB} KB
+                    </label>
+                    <input
+                      type="range"
+                      min="50"
+                      max="1000"
+                      step="50"
+                      value={settings.evidence.maxEvidenceSizeKB}
+                      onChange={(e) => updateSetting('evidence', 'maxEvidenceSizeKB', parseInt(e.target.value))}
+                      className="w-full h-2 bg-navy-700 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Max payload size per evidence attachment</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      Retention Period: {settings.evidence.retentionDays} day{settings.evidence.retentionDays !== 1 ? 's' : ''}
+                    </label>
+                    <input
+                      type="range"
+                      min="1"
+                      max="90"
+                      step="1"
+                      value={settings.evidence.retentionDays}
+                      onChange={(e) => updateSetting('evidence', 'retentionDays', parseInt(e.target.value))}
+                      className="w-full h-2 bg-navy-700 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>1 day</span>
+                      <span>30 days</span>
+                      <span>90 days</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Evidence data older than {settings.evidence.retentionDays} day(s) will be automatically cleaned up
+                    </p>
+                  </div>
+
+                  {settings.evidence.storageMode === 'minio' && (
+                    <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-lg p-3">
+                      <p className="text-yellow-400 text-sm font-medium">MinIO Configuration</p>
+                      <p className="text-yellow-400/70 text-xs mt-1">
+                        Ensure MinIO is running on port 9000. Bucket: proctor-evidence.
+                        Evidence will be stored at: evidence/YYYY-MM-DD/uuid.ext
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Evidence Capture Toggles */}
+            <div className="bg-navy-800/30 p-6 rounded-lg">
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <Camera className="w-5 h-5" />
+                Evidence Capture
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white/5 rounded-lg p-4">
+                  <label className="flex items-center space-x-3 mb-3">
+                    <input
+                      type="checkbox"
+                      checked={settings.evidence.captureScreenshots}
+                      onChange={(e) => updateSetting('evidence', 'captureScreenshots', e.target.checked)}
+                      className="form-checkbox h-4 w-4 text-cyan-400 bg-navy-800 border-white/20 rounded focus:ring-cyan-400"
+                    />
+                    <span className="text-white font-medium">Screenshots</span>
+                  </label>
+                  <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
+                    <Image className="w-4 h-4" />
+                    <span>Browser Violations</span>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Captures page metadata (title, URL, viewport, visibility state) on browser events like tab switch, copy/paste, right-click
+                  </p>
+                </div>
+
+                <div className="bg-white/5 rounded-lg p-4">
+                  <label className="flex items-center space-x-3 mb-3">
+                    <input
+                      type="checkbox"
+                      checked={settings.evidence.captureWebcamFrames}
+                      onChange={(e) => updateSetting('evidence', 'captureWebcamFrames', e.target.checked)}
+                      className="form-checkbox h-4 w-4 text-cyan-400 bg-navy-800 border-white/20 rounded focus:ring-cyan-400"
+                    />
+                    <span className="text-white font-medium">Webcam Frames</span>
+                  </label>
+                  <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
+                    <Film className="w-4 h-4" />
+                    <span>Vision AI Violations</span>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Captures JPEG webcam frame (320×240, ~10-20KB) at the moment of face detection failures, camera covered, etc.
+                  </p>
+                </div>
+
+                <div className="bg-white/5 rounded-lg p-4">
+                  <label className="flex items-center space-x-3 mb-3">
+                    <input
+                      type="checkbox"
+                      checked={settings.evidence.captureAudioClips}
+                      onChange={(e) => updateSetting('evidence', 'captureAudioClips', e.target.checked)}
+                      className="form-checkbox h-4 w-4 text-cyan-400 bg-navy-800 border-white/20 rounded focus:ring-cyan-400"
+                    />
+                    <span className="text-white font-medium">Audio Clips</span>
+                  </label>
+                  <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
+                    <AudioLines className="w-4 h-4" />
+                    <span>Audio AI Violations</span>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Captures 5-10 second audio clip from ring buffer on noise spikes, voice detection, sustained noise events
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Storage info */}
+            <div className="bg-navy-800/30 p-4 rounded-lg border border-white/5">
+              <p className="text-gray-400 text-sm">
+                <strong className="text-white">Storage estimate:</strong> With all evidence types enabled, a typical session with 20 violations uses ~400KB (inline). 
+                For high-volume deployments (1000+ concurrent sessions), consider switching to MinIO storage mode.
+              </p>
+            </div>
+          </div>
+        )}
         {activeTab === 'ai' && (
           <div className="text-center py-12">
             <Brain className="w-16 h-16 text-gray-600 mx-auto mb-4" />

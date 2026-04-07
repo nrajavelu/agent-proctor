@@ -19,6 +19,8 @@ import SuperAdminDashboard from '../components/SuperAdminDashboard';
 import TenantManagement from '../components/TenantManagement';
 import Analytics from '../components/Analytics';
 import GlobalSettings from '../components/GlobalSettings';
+import SystemMonitor from '../components/SystemMonitor';
+import Integrations from '../components/Integrations';
 
 interface TenantSession {
   userId: string;
@@ -35,7 +37,7 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [tenantSession, setTenantSession] = useState<TenantSession | null>(null);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'in-progress'>('all');
+  const [filter, setFilter] = useState<string>('all');
   const [examFilter, setExamFilter] = useState('');
   const [batchFilter, setBatchFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -90,7 +92,11 @@ export default function AdminDashboard() {
 
   // Filter sessions based on current filters
   const filteredSessions = sessions.filter(session => {
-    if (filter !== 'all' && session.status !== filter) return false;
+    if (filter !== 'all') {
+      if (filter === 'idle') {
+        if (!session.status.startsWith('idle-')) return false;
+      } else if (session.status !== filter) return false;
+    }
     if (examFilter && !session.examId.toLowerCase().includes(examFilter.toLowerCase())) return false;
     if (searchTerm && !session.candidateId.toLowerCase().includes(searchTerm.toLowerCase())) return false;
     return true;
@@ -136,8 +142,25 @@ export default function AdminDashboard() {
         return `${baseClasses} bg-blue-100 text-blue-800`;
       case 'terminated':
         return `${baseClasses} bg-red-100 text-red-800`;
+      case 'abandoned':
+        return `${baseClasses} bg-gray-100 text-gray-500`;
+      case 'idle-yellow':
+        return `${baseClasses} bg-yellow-100 text-yellow-700`;
+      case 'idle-amber':
+        return `${baseClasses} bg-orange-100 text-orange-700`;
+      case 'idle-red':
+        return `${baseClasses} bg-red-100 text-red-700`;
       default:
         return `${baseClasses} bg-gray-100 text-gray-800`;
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'idle-yellow': return 'idle (5m)';
+      case 'idle-amber': return 'idle (10m)';
+      case 'idle-red': return 'idle (15m+)';
+      default: return status;
     }
   };
 
@@ -176,18 +199,29 @@ export default function AdminDashboard() {
         <SuperAdminNav 
           activeView={superAdminActiveView}
           setActiveView={setSuperAdminActiveView}
-          tenantSession={tenantSession}
-          onSwitchToTenant={() => setActiveView('tenant-admin')}
           onLogout={handleLogout}
         />
         
         <div className="lg:pl-64">
           <main className="py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              {/* Switch to tenant admin button */}
+              {isSuperAdmin && (
+                <div className="mb-4 flex justify-end">
+                  <button
+                    onClick={() => setActiveView('tenant-admin')}
+                    className="px-3 py-1 bg-navy-700 text-gray-300 text-sm rounded hover:bg-navy-600 transition-colors"
+                  >
+                    Switch to Tenant View
+                  </button>
+                </div>
+              )}
               {superAdminActiveView === 'dashboard' && <SuperAdminDashboard />}
               {superAdminActiveView === 'tenants' && <TenantManagement />}
               {superAdminActiveView === 'analytics' && <Analytics />}
               {superAdminActiveView === 'settings' && <GlobalSettings />}
+              {superAdminActiveView === 'monitoring' && <SystemMonitor />}
+              {superAdminActiveView === 'integrations' && <Integrations />}
             </div>
           </main>
         </div>
@@ -195,7 +229,7 @@ export default function AdminDashboard() {
     );
   }
 
-  const activeSessions = filteredSessions.filter(s => s.status === 'active').length;
+  const activeSessions = filteredSessions.filter(s => s.status === 'active' || s.status.startsWith('idle-')).length;
   const totalViolations = filteredSessions.reduce((sum, s) => sum + s.violations.length, 0);
   const avgCredibilityScore = Math.round(
     filteredSessions.reduce((sum, s) => sum + s.credibilityScore, 0) / Math.max(filteredSessions.length, 1)
@@ -347,7 +381,9 @@ export default function AdminDashboard() {
               >
                 <option value="all">All Sessions</option>
                 <option value="active">Active</option>
+                <option value="idle">Idle</option>
                 <option value="completed">Completed</option>
+                <option value="abandoned">Abandoned</option>
                 <option value="terminated">Terminated</option>
               </select>
             </div>
@@ -430,11 +466,12 @@ export default function AdminDashboard() {
                       <div>
                         <div className="text-sm font-medium text-white">{session.candidateId}</div>
                         <div className="text-sm text-gray-400">{session.examId}</div>
+                        {(session as any).shortId && <div className="text-xs text-cyan-400 font-mono">{(session as any).shortId}</div>}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={getStatusBadge(session.status)}>
-                        {session.status}
+                        {getStatusLabel(session.status)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
