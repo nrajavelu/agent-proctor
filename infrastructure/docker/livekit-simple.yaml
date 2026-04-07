@@ -3,8 +3,5 @@ keys:
   devkey: devsecret
 redis:
   address: ayan-redis:6379
-room:
-  max_duration: 14400
-  empty_timeout: 300
 logging:
   level: info
